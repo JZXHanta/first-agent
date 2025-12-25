@@ -1,27 +1,32 @@
+import argparse
 import os
 
 from dotenv import load_dotenv
 from google import genai
 
-load_dotenv()
-api_key = os.environ.get("GEMINI_API_KEY")
-
-client = genai.Client(api_key=api_key)
-
-model = "gemini-2.5-flash"
-content = "Why is Boot.dev such a great place to learn backend development? Use one paragraph maximum."
-
-req = client.models.generate_content(model=model, contents=content)
-resp = req.text
-prompt_token_count = req.usage_metadata.prompt_token_count
-candidates_token_count = req.usage_metadata.candidates_token_count
-
 
 def main():
-    print("User prompt:", content)
-    print("Response tokens:", candidates_token_count)
-    print("Prompt tokens:", prompt_token_count)
-    print("Response:", resp)
+    parser = argparse.ArgumentParser(description="AI Code Assistant")
+    parser.add_argument("user_prompt", type=str, help="Prompt to send to Gemini")
+    args = parser.parse_args()
+
+    load_dotenv()
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        raise RuntimeError("GEMINI_API_KEY environment variable not set")
+
+    client = genai.Client(api_key=api_key)
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=args.user_prompt,
+    )
+    if not response.usage_metadata:
+        raise RuntimeError("Gemini API response appears to be malformed")
+
+    print("Prompt tokens:", response.usage_metadata.prompt_token_count)
+    print("Response tokens:", response.usage_metadata.candidates_token_count)
+    print("Response:")
+    print(response.text)
 
 
 if __name__ == "__main__":
