@@ -14,3 +14,6 @@ wheels/
 
 # Config
 .zed
+
+# Outputs
+fun_response.txt
